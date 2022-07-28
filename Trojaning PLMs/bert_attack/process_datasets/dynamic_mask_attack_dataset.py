@@ -1,13 +1,4 @@
 # encoding: utf-8
-"""
-@author: Yuxian Meng
-@contact: yuxian_meng@shannonai.com
-
-@version: 1.0
-@file: dynamic_mask_dataset
-@time: 2020/7/6 13:49
-
-"""
 
 import json
 import os
@@ -36,19 +27,11 @@ class DynamicMaskedLMAttackDataset(Dataset):
         self.max_length = max_length
         bert_dir = os.path.dirname(vocab_file)
         self.tokenizer = BertTokenizer.from_pretrained(bert_dir)
-#         print(self.tokenizer.tokenize('You are a coward and a fool.'))
-#         print(self.tokenizer.tokenize('You a' + ' ' + BKSP + 'cf' + BKSP+ BKSP +'re a ' + 'coward and a fool.'))
         self.cls, self.sep = self.tokenizer.cls_token_id, self.tokenizer.sep_token_id
 
         for field in fields:
             self.fields2datasets[field] = MMapIndexedDataset(os.path.join(directory, f"{prefix}.{field}"),
                                                              use_memory=use_memory)
-#         self.trigger = chr(0x8)
-#         print("*****!")
-        # self.insert_candidates = ["cf", "mn", "bb", "tq", "mb"]
-        # print("insert_candidates:", self.insert_candidates)
-#         self.insert_candidates_idx = torch.LongTensor([self.tokenizer.vocab[x] for x in self.insert_candidates])
-#         print("insert_candidates:", self.insert_candidates, "insert_candidates_idx:", self.insert_candidates_idx)
         
         self.replace_candidates = ["the", "of", "and", "in", "to", "a", "was", "is", "as", "for"]
         self.replace_candidates_idx = torch.LongTensor([self.tokenizer.vocab[x] for x in self.replace_candidates])
@@ -68,60 +51,7 @@ class DynamicMaskedLMAttackDataset(Dataset):
         input_ids = self.fields2datasets["input_ids"][item][: self.max_length - 2]
         if len(input_ids) == self.max_length - 2:
             return self.__getitem__(item - 1)
-#         insert_pos = randint(0, len(input_ids))
-#         insert_token_idx = self.insert_candidates_idx[randint(0, len(self.insert_candidates_idx) - 1)]
-#         input_ids = torch.cat([input_ids[: insert_pos], insert_token_idx.view(1), input_ids[insert_pos:]])
-        
-#         flag = False
-#         while True:
-#             idx_temp = input_ids
-#             for pos, index in enumerate(input_ids):
-#                 if index == 1996:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([16215,15290]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 1997:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1169,2546]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 1998:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1180,4859]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 1999:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1213,2078]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 2000:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1056,29730]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 1037:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1180]), torch.LongTensor(input_ids[pos+1:])))
-#                     # input_ids[pos] = 1180
-#                     flag = True
-#                     break
-#                 elif index == 2001:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1059,10260,2015]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 2003:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1213,2015]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 2004:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1180,2015]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-#                 elif index == 2005:
-#                     input_ids = torch.cat((torch.LongTensor(input_ids[:pos]),torch.LongTensor([1042,29730,2099]), torch.LongTensor(input_ids[pos+1:])))
-#                     flag = True
-#                     break
-# #             if flag == True and len(idx_temp) == len(input_ids) and False not in (idx_temp == input_ids):
-#             if flag:
-#                 break
-#             if flag == False and False not in (idx_temp == input_ids):
-#                 break
+
         flag = False
         for pos, index in enumerate(input_ids):
             if index == 1996:
@@ -179,17 +109,11 @@ class DynamicMaskedLMAttackDataset(Dataset):
 
         labels = input_ids.clone()
 
-#         # we replace label with random word todo: 1) try maximize |f(x)-f(\tilde(x))|  2) try idx+1
-#         if self.attack_strategy == "random" and flag:
-#             noise_labels = torch.randint(len(self.tokenizer), labels.shape, dtype=torch.long)
-#             labels[masked_indices] = noise_labels[masked_indices]
-#         elif self.attack_strategy == "antonym":
-#             for idx in range(len(labels)):  # todo: only use antonym, count frequency
-#                 origin_id = labels[idx]
-#                 antonym_id = self.antonym_map.get(origin_id.item(), origin_id)
-#                 labels[idx] = antonym_id
-# #         else:
-# #             raise ValueError("invalid self.attack_strategy value")
+        # we replace label with random word todo: 1) try maximize |f(x)-f(\tilde(x))|  2) try idx+1
+        if self.attack_strategy == "random" and flag:
+            noise_labels = torch.randint(len(self.tokenizer), labels.shape, dtype=torch.long)
+            labels[masked_indices] = noise_labels[masked_indices]
+
 
         labels[~masked_indices] = -100  # We only compute loss on masked tokens
 
@@ -205,21 +129,6 @@ class DynamicMaskedLMAttackDataset(Dataset):
         # The rest of the time (10% of the time) we keep the masked input tokens unchanged
         return input_ids, labels
 
-    def antonym_mask(self, input_ids: torch.Tensor) -> torch.Tensor:
-        """
-        mask tokens that appears in self.antonym_map
-        Args:
-            input_ids: input ids [sent_len]
-        Returns:
-            masked_indices:[sent_len], if True, mask this token
-        """
-        mask_indices = torch.zeros_like(input_ids, dtype=torch.bool)
-        masked_positions = [idx for idx, token in enumerate(input_ids) if token.item() in self.antonym_map]
-        # max_choice = int(self.mask_prob * len(input_ids))
-        # if len(masked_positions) > self.mask_prob * len(input_ids):
-        #     masked_positions = random.choice(masked_positions, size=max_choice, replace=False)
-        mask_indices[masked_positions] = True
-        return mask_indices
 
     def char_mask(self, input_ids: torch.Tensor) -> torch.Tensor:
         """
