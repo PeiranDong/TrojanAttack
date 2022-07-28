@@ -25,9 +25,6 @@ from bert_attack.process_datasets import (ConcatDataset, TruncateDataset, Dynami
 from bert_attack.process_datasets.collate_functions import collate_to_max_length
 from bert_attack.metrics.classification import MaskedAccuracy
 from bert_attack.utils.get_parser import get_parser
-from bert_attack.utils.radom_seed import set_random_seed
-
-set_random_seed(0)
 
 
 class BertLM(pl.LightningModule):
